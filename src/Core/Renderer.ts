@@ -1,85 +1,127 @@
-import { Drawable } from "../utils";
+interface Ground {
+  width: number;
+  height: number;
+  background: CanvasImageSource;
 
-export interface CanvasSize {
-  width: number,
-  height: number,
+  onClick?: () => void;
+}
+
+interface GroundObject {
+  getDrawData: () => Ground;
+}
+
+interface Drawable {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  zIndex: number;
+  background: CanvasImageSource;
+
+  onClick?: () => void;
+  backgroundPosition?: { x: number, y: number, };
+  backgroundSize?: { width: number, height: number };
+}
+
+interface DrawableObject {
+  getDrawData: () => Drawable;
 }
 
 export class Renderer {
-  canvas: HTMLCanvasElement;
-  context: CanvasRenderingContext2D;
-  drawableList: Drawable[] = [
-    { x: 50, y: 50, width: 100, height: 100, backgroundColor: 'red' }
-  ];
+  private _isRendering: boolean = true;
+  private _canvas: HTMLCanvasElement = document.createElement('canvas');
+  private _context: CanvasRenderingContext2D = this._canvas.getContext('2d');
+  private _ground: GroundObject = null;
+  private _centralPoint: DrawableObject = null;
+  private _drawableList: DrawableObject[] = [];
+  private _width: number = window.innerWidth;
+  private _height: number = window.innerHeight;
+
 
   constructor() {
-    this._createCanvas();
-    this._bindResizeEvents();
-    this._fitCanvasToWindow();
-
-    this._moveRect();
+    this._bindCanvasEvents();
   }
 
-  render = () => {
-    requestAnimationFrame(this.render);
+  private _bindCanvasEvents = () => {
+    window.addEventListener('resize', this._fitCanvasToWindow, false);
+    this._canvas.addEventListener('click', this._handleCanvasClick, false);
+  }
 
-    this.context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  private _getOrderedDrawObjects = () => {
+    const { _drawableList, _centralPoint } = this;
 
-    for (let { x, y, width, height, backgroundColor, image, zIndex, click } of this.drawableList) {
-      if  (!backgroundColor && !image) {
-        console.error('Renderer.render(): There is nothing to render, ignoring...');
-        continue;
-      }
+    const drawObjects = [..._drawableList, _centralPoint].map((drawableObject: DrawableObject) => drawableObject.getDrawData());
+    return drawObjects.sort((a: Drawable, b: Drawable) => a.zIndex > b.zIndex ? 1 : -1);
+  }
 
-      if (backgroundColor) {
-        this.context.fillStyle = backgroundColor;
-        this.context.fillRect(x, y, width, height);
+  private _handleCanvasClick = ({ clientX: x, clientY: y }: MouseEvent) => {
+    const drawObjects = this._getOrderedDrawObjects();
+
+    for (let object of drawObjects) {
+      const startX = object.x;
+      const endX = object.x + object.width;
+      const startY = object.y;
+      const endY = object.y + object.height;
+
+      if (x >= startX && x <= endX && y >= startY && y <= endY) {
+        if (object.onClick) object.onClick();
+        return;
       }
     }
   }
 
-  private _moveRect = () => {
-    // :D
-    setInterval(() => {
-      const random = Math.random();
-      const value = Math.random() >= .5 ? 10 : -10;
-
-      if (random < .25) {
-        this.drawableList[0].x += value;
-      } else if (random < .5) {
-        this.drawableList[0].y += value;
-      } else if (random < .75) {
-        this.drawableList[0].width += value;
-      } else {
-        this.drawableList[0].height += value;
-      }
-    }, 100);
-  }
-
-  private _bindResizeEvents = () => {
-    const EVENT_NAMES = ['resize'];
-
-    EVENT_NAMES.forEach((eventName: string) => {
-      window.addEventListener(eventName, this._fitCanvasToWindow, false);
-    });
-  }
-
   private _fitCanvasToWindow = () => {
-    this._resizeCanvas({
-      width: window.innerWidth,
-      height: window.innerHeight,
-    });
+    this._canvas.width = this._width = window.innerWidth;
+    this._canvas.height = this._height = window.innerHeight;
   }
 
-  private _resizeCanvas = ({ width, height }: CanvasSize) => {
-    Object.assign(this.canvas, { width, height });
+
+  addDrawable = (drawableObject: DrawableObject) => {
+    this._drawableList.push(drawableObject);
   }
 
-  private _createCanvas = () => {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
+  removeDrawable = (drawableObject: DrawableObject) => {
+    this._drawableList = this._drawableList.filter(item => item !== drawableObject);
+  }
 
-    document.body.appendChild(canvas);
-    Object.assign(this, { canvas, context });
+  setGround = (ground: DrawableObject) => {
+    this._ground = ground;
+  }
+
+  render = () => {
+    if (!this._isRendering) return;
+    requestAnimationFrame(this.render);
+
+    const { _width, _height, _context, _ground, _centralPoint } = this;
+
+    const drawableCentralPoint = _centralPoint.getDrawData();
+    const drawableGround = _ground.getDrawData();
+
+    const centralPointAverageX = drawableCentralPoint.x + drawableCentralPoint.width / 2;
+    const centralPointAverageY = drawableCentralPoint.y + drawableCentralPoint.height / 2;
+    const mapX = -Math.min(Math.max(0, centralPointAverageX / 2), drawableGround.width - _width / 2);
+    const mapY = -Math.min(Math.max(0, centralPointAverageY / 2), drawableGround.height - _height / 2);
+
+    const orderedDrawObjects = this._getOrderedDrawObjects();
+
+    _context.clearRect(0, 0, _width, _height);
+    _context.drawImage(drawableGround.background, mapX, mapY);
+
+
+    for (let drawableObject of orderedDrawObjects) {
+      const { x, y, width, height, background, backgroundPosition, backgroundSize } = drawableObject;
+
+      _context.drawImage(
+        background,
+        backgroundPosition.x || 0,
+        backgroundPosition.y || 0,
+        backgroundSize.width || width,
+        backgroundSize.height || height,
+        x + mapX,
+        y + mapY,
+        width,
+        height
+      );
+    }
   }
 }
