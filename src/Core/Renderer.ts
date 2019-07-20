@@ -1,33 +1,7 @@
-interface Ground {
-  width: number;
-  height: number;
-  background: CanvasImageSource;
+import { Game, Component } from './';
+import { Drawable, DrawableObject, GroundObject } from '../interfaces';
 
-  onClick?: () => void;
-}
-
-interface GroundObject {
-  getDrawData: () => Ground;
-}
-
-interface Drawable {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  zIndex: number;
-  background: CanvasImageSource;
-
-  onClick?: () => void;
-  backgroundPosition?: { x: number, y: number, };
-  backgroundSize?: { width: number, height: number };
-}
-
-interface DrawableObject {
-  getDrawData: () => Drawable;
-}
-
-export class Renderer {
+export class Renderer extends Component {
   private _isRendering: boolean = true;
   private _canvas: HTMLCanvasElement = document.createElement('canvas');
   private _context: CanvasRenderingContext2D = this._canvas.getContext('2d');
@@ -38,7 +12,10 @@ export class Renderer {
   private _height: number = window.innerHeight;
 
 
-  constructor() {
+  constructor(game: Game) {
+    super(game);
+
+    this.hide();
     this._bindCanvasEvents();
   }
 
@@ -75,6 +52,13 @@ export class Renderer {
     this._canvas.height = this._height = window.innerHeight;
   }
 
+  hide = () => {
+    this._canvas.style.display = 'none';
+  }
+
+  show = () => {
+    this._canvas.removeAttribute('style');
+  }
 
   addDrawable = (drawableObject: DrawableObject) => {
     this._drawableList.push(drawableObject);
@@ -84,7 +68,7 @@ export class Renderer {
     this._drawableList = this._drawableList.filter(item => item !== drawableObject);
   }
 
-  setGround = (ground: DrawableObject) => {
+  setGround = (ground: GroundObject) => {
     this._ground = ground;
   }
 

@@ -1,2 +1,1 @@
-export * from './Store';
-export * from './Interfaces';
+export * from './EventEmitter';
