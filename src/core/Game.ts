@@ -11,10 +11,7 @@ export class Game {
 
 
   constructor() {
-    setTimeout(() => {
-      this.loader.hide();
-      this.renderer.show();
-    }, 250);
+    
   }
 
 }
