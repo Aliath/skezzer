@@ -3,15 +3,14 @@ import { EventEmitter } from '../utils/';
 
 export class Game {
   /* UTILS */
-  eventEmitter: EventEmitter = new EventEmitter();
+  public eventEmitter: EventEmitter = new EventEmitter();
 
   /* COMPONENTS */
-  renderer: Renderer = new Renderer(this);
-  loader: Loader = new Loader(this);
+  public renderer: Renderer = new Renderer(this);
+  public loader: Loader = new Loader(this);
 
 
   constructor() {
-    console.log('GAME!');
     setTimeout(() => {
       this.loader.hide();
       this.renderer.show();

@@ -1,20 +1,21 @@
 import { Component, Game } from './';
 
 export class Loader extends Component {
-  ref: HTMLElement;
+  private _ref: HTMLElement;
 
   constructor(game: Game) {
     super(game);
 
-    this.ref = document.getElementById('loader');
+    this._ref = document.getElementById('loader');
   }
 
-  hide = () => {
-    this.ref.classList.add('loader--hidden');
-    this.
+  public hide = () => {
+    this._ref.classList.add('loader--hidden');
+    this._eventEmitter.emit('loader:hide');
   }
 
-  show = () => {
-    this.ref.classList.remove('loader-hidden');
+  public show = () => {
+    this._ref.classList.remove('loader-hidden');
+    this._eventEmitter.emit('loader:show');
   }
 }

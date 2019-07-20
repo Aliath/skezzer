@@ -1,3 +1,3 @@
 import { Game } from './core';
 
-new Game();
+const game = new Game();

@@ -45,34 +45,40 @@ export class Renderer extends Component {
         return;
       }
     }
+    
+    this._eventEmitter.emit('renderer:canvasClick');
   }
 
   private _fitCanvasToWindow = () => {
     this._canvas.width = this._width = window.innerWidth;
     this._canvas.height = this._height = window.innerHeight;
+
+    this._eventEmitter.emit('renderer:canvasResize');
   }
 
-  hide = () => {
+  public hide = () => {
     this._canvas.style.display = 'none';
+    this._eventEmitter.emit('renderer:canvasHide');
   }
 
-  show = () => {
+  public show = () => {
     this._canvas.removeAttribute('style');
+    this._eventEmitter.emit('renderer:canvasShow');
   }
 
-  addDrawable = (drawableObject: DrawableObject) => {
+  public addDrawable = (drawableObject: DrawableObject) => {
     this._drawableList.push(drawableObject);
   }
 
-  removeDrawable = (drawableObject: DrawableObject) => {
+  public removeDrawable = (drawableObject: DrawableObject) => {
     this._drawableList = this._drawableList.filter(item => item !== drawableObject);
   }
 
-  setGround = (ground: GroundObject) => {
+  public setGround = (ground: GroundObject) => {
     this._ground = ground;
   }
 
-  render = () => {
+  public render = () => {
     if (!this._isRendering) return;
     requestAnimationFrame(this.render);
 
