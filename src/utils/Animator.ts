@@ -1,14 +1,4 @@
-interface AnimationDelta {
-  [key: string]: number;
-}
-
-interface Animation {
-  target: any;
-  handler: () => void;
-  params: AnimationDelta;
-  lastUpdate: number;
-}
-
+import { Animation, AnimationDelta } from '../interfaces/';
 const _animations: Animation[] = [];
 
 export class Animator {
