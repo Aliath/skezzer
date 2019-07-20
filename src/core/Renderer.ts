@@ -33,12 +33,14 @@ export class Renderer extends Component {
 
   private _handleCanvasClick = ({ clientX: x, clientY: y }: MouseEvent) => {
     const drawObjects = this._getOrderedDrawObjects();
+    const {x: mapX, y: mapY} = this.getMapPosition();
+
 
     for (let object of drawObjects) {
-      const startX = object.x;
-      const endX = object.x + object.width;
-      const startY = object.y;
-      const endY = object.y + object.height;
+      const startX = object.x + mapX;
+      const endX = startX + object.width;
+      const startY = object.y + mapY;
+      const endY = startY + object.height;
 
       if (x >= startX && x <= endX && y >= startY && y <= endY) {
         if (object.onClick) object.onClick();
@@ -78,20 +80,28 @@ export class Renderer extends Component {
     this._ground = ground;
   }
 
-  public render = () => {
-    if (!this._isRendering) return;
-    requestAnimationFrame(this.render);
-
-    const { _width, _height, _context, _ground, _centralPoint } = this;
-
+  public getMapPosition = () => {
+    const { _ground, _centralPoint, _width, _height } = this;
+    
     const drawableCentralPoint = _centralPoint.getDrawData();
     const drawableGround = _ground.getDrawData();
 
     const centralPointAverageX = drawableCentralPoint.x + drawableCentralPoint.width / 2;
     const centralPointAverageY = drawableCentralPoint.y + drawableCentralPoint.height / 2;
-    const mapX = -Math.min(Math.max(0, centralPointAverageX / 2), drawableGround.width - _width / 2);
-    const mapY = -Math.min(Math.max(0, centralPointAverageY / 2), drawableGround.height - _height / 2);
 
+    const x = -Math.min(Math.max(0, centralPointAverageX / 2), drawableGround.width - _width / 2);
+    const y = -Math.min(Math.max(0, centralPointAverageY / 2), drawableGround.height - _height / 2);
+
+    return { x, y };
+  }
+
+  public render = () => {
+    if (!this._isRendering) return;
+    requestAnimationFrame(this.render);
+
+    const { _width, _height, _context, _ground, _centralPoint } = this;
+    const drawableGround = _ground.getDrawData();
+    const {x: mapX, y: mapY} = this.getMapPosition();
     const orderedDrawObjects = this._getOrderedDrawObjects();
 
     _context.clearRect(0, 0, _width, _height);
