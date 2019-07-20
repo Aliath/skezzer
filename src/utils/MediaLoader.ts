@@ -1,8 +1,11 @@
+type handler = (media: CanvasImageSource) => void;
+type mediaData = { media: CanvasImageSource, loaded: boolean };
+
 const IMAGE_FORMATS = ['jpg', 'png'];
 const VIDEO_FORMATS = ['mp4', 'webm'];
 
-const _loadedMedia: { [source: string]: { media: CanvasImageSource, loaded: boolean } } = {};
-const _loadListeners: { [source: string]: ((media: CanvasImageSource) => void)[] } = {};
+const _loadedMedia: { [source: string]: mediaData } = {};
+const _loadListeners: { [source: string]: handler[] } = {};
 
 const _loadImage = (source: string) => {
   const image = new Image();
