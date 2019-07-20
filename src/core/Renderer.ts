@@ -1,4 +1,5 @@
 import { Game, Component } from './';
+import { Animator } from '../utils/';
 import { Drawable, DrawableObject, GroundObject } from '../interfaces';
 
 export class Renderer extends Component {
@@ -33,7 +34,7 @@ export class Renderer extends Component {
 
   private _handleCanvasClick = ({ clientX: x, clientY: y }: MouseEvent) => {
     const drawObjects = this._getOrderedDrawObjects();
-    const {x: mapX, y: mapY} = this.getMapPosition();
+    const { x: mapX, y: mapY } = this.getMapPosition();
 
 
     for (let object of drawObjects) {
@@ -47,7 +48,7 @@ export class Renderer extends Component {
         return;
       }
     }
-    
+
     this._eventEmitter.emit('renderer:canvasClick');
   }
 
@@ -82,7 +83,7 @@ export class Renderer extends Component {
 
   public getMapPosition = () => {
     const { _ground, _centralPoint, _width, _height } = this;
-    
+
     const drawableCentralPoint = _centralPoint.getDrawData();
     const drawableGround = _ground.getDrawData();
 
@@ -95,13 +96,14 @@ export class Renderer extends Component {
     return { x, y };
   }
 
-  public render = () => {
+  public render = (time: number) => {
     if (!this._isRendering) return;
     requestAnimationFrame(this.render);
+    Animator.update(time);
 
     const { _width, _height, _context, _ground, _centralPoint } = this;
     const drawableGround = _ground.getDrawData();
-    const {x: mapX, y: mapY} = this.getMapPosition();
+    const { x: mapX, y: mapY } = this.getMapPosition();
     const orderedDrawObjects = this._getOrderedDrawObjects();
 
     _context.clearRect(0, 0, _width, _height);
