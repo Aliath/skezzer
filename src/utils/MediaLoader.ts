@@ -14,7 +14,7 @@ const _loadImage = (source: string) => {
   _loadListeners[source] = [];
 
   image.addEventListener('load', () => {
-    _loadedMedia[source].loaded = true;
+    _loadedMedia[source] = { loaded: true, media: image };
 
     _loadListeners[source].forEach(handler => {
       handler(image);
@@ -33,7 +33,7 @@ const _loadVideo = (source: string) => {
   _loadListeners[source] = [];
 
   video.addEventListener('load', () => {
-    _loadedMedia[source].loaded = true;
+    _loadedMedia[source] = { loaded: true, media: video };
 
     _loadListeners[source].forEach(handler => {
       handler(video);
@@ -69,8 +69,8 @@ const _loadBySource = (source: string): Promise<CanvasImageSource> => {
 
   const isVideo = VIDEO_FORMATS.some((videoFormat: string) => source.endsWith(`.${videoFormat}`));
   if (isVideo) {
-     _loadVideo(source);
-     return new Promise(resolve => {
+    _loadVideo(source);
+    return new Promise(resolve => {
       _loadListeners[source].push((media: CanvasImageSource) => {
         resolve(media);
       });

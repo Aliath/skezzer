@@ -1,10 +1,11 @@
 import { Game, Component } from './';
 import { Animator } from '../utils/';
 import { Drawable, DrawableObject, GroundObject } from '../interfaces';
+import { GRID_SIZE } from '../config';
 
 export class Renderer extends Component {
-  private _isRendering: boolean = true;
-  private _canvas: HTMLCanvasElement = document.createElement('canvas');
+  private _isRendering: boolean = false;
+  private _canvas: HTMLCanvasElement = document.body.appendChild(document.createElement('canvas'));
   private _context: CanvasRenderingContext2D = this._canvas.getContext('2d');
   private _ground: GroundObject = null;
   private _centralPoint: DrawableObject = null;
@@ -18,6 +19,7 @@ export class Renderer extends Component {
 
     this.hide();
     this._bindCanvasEvents();
+    this._fitCanvasToWindow();
   }
 
   private _bindCanvasEvents = () => {
@@ -81,27 +83,37 @@ export class Renderer extends Component {
     this._ground = ground;
   }
 
+  public setCentralPoint = (centralPoint: DrawableObject) => {
+    this._centralPoint = centralPoint;
+  }
+
+  public startRender = () => {
+    this._isRendering = true;
+    requestAnimationFrame(this._render);
+  }
+
   public getMapPosition = () => {
     const { _ground, _centralPoint, _width, _height } = this;
 
     const drawableCentralPoint = _centralPoint.getDrawData();
     const drawableGround = _ground.getDrawData();
 
+    const offsetX = Math.max(0, (_width - drawableGround.width) / 2);
+    const offsetY = Math.max(0, (_height - drawableGround.height) / 2);
+
     const centralPointAverageX = drawableCentralPoint.x + drawableCentralPoint.width / 2;
     const centralPointAverageY = drawableCentralPoint.y + drawableCentralPoint.height / 2;
 
-    const x = -Math.min(Math.max(0, centralPointAverageX / 2), drawableGround.width - _width / 2);
-    const y = -Math.min(Math.max(0, centralPointAverageY / 2), drawableGround.height - _height / 2);
-
+    const x = -Math.min(Math.max(0, centralPointAverageX - _width / 2), (drawableGround.width - _width + offsetX));
+    const y = -Math.min(Math.max(0, centralPointAverageY - _height / 2), drawableGround.height - _height + offsetY);
     return { x, y };
   }
 
-  public render = (time: number) => {
-    if (!this._isRendering) return;
-    requestAnimationFrame(this.render);
+  private _render = (time: number) => {
+    if (this._isRendering) requestAnimationFrame(this._render);
     Animator.update(time);
 
-    const { _width, _height, _context, _ground, _centralPoint } = this;
+    const { _width, _height, _context, _ground } = this;
     const drawableGround = _ground.getDrawData();
     const { x: mapX, y: mapY } = this.getMapPosition();
     const orderedDrawObjects = this._getOrderedDrawObjects();
@@ -111,16 +123,21 @@ export class Renderer extends Component {
 
 
     for (let drawableObject of orderedDrawObjects) {
-      const { x, y, width, height, background, backgroundPosition, backgroundSize } = drawableObject;
+      const defaults = {
+        backgroundPosition: { x: 0, y: 0 },
+        backgroundSize: { width: drawableObject.width, height: drawableObject.height }
+      };
+      const { x, y, width, height, background, backgroundPosition, backgroundSize } = { ...defaults, ...drawableObject };
+
 
       _context.drawImage(
         background,
-        backgroundPosition.x || 0,
-        backgroundPosition.y || 0,
-        backgroundSize.width || width,
-        backgroundSize.height || height,
-        x + mapX,
-        y + mapY,
+        backgroundPosition.x,
+        backgroundPosition.y,
+        backgroundSize.width,
+        backgroundSize.height,
+        (GRID_SIZE - width) + x + mapX,
+        (GRID_SIZE - height) + y + mapY,
         width,
         height
       );
