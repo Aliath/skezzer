@@ -43,13 +43,13 @@ const _loadVideo = (source: string) => {
   }, false);
 }
 
-const _loadFromCache = (source: string) => {
+const _loadFromCache = (source: string): Promise<CanvasImageSource> => {
   return new Promise(resolve => {
     resolve(_loadedMedia[source].media);
   });
 }
 
-const _loadBySource = (source: string) => {
+const _loadBySource = (source: string): Promise<CanvasImageSource> => {
   if (_loadedMedia.hasOwnProperty(source)) {
     if (_loadedMedia[source].loaded) return _loadFromCache(source);
     return new Promise(resolve => {
@@ -68,13 +68,20 @@ const _loadBySource = (source: string) => {
   }
 
   const isVideo = VIDEO_FORMATS.some((videoFormat: string) => source.endsWith(`.${videoFormat}`));
-  if (isVideo) return _loadVideo(source);
+  if (isVideo) {
+     _loadVideo(source);
+     return new Promise(resolve => {
+      _loadListeners[source].push((media: CanvasImageSource) => {
+        resolve(media);
+      });
+    });
+  }
 
   throw new Error('MediaLoader._loadBySource(): Unknown media type!');
 }
 
 export class MediaLoader {
-  static load = (source: string) => {
+  static load = (source: string): Promise<CanvasImageSource> => {
     return _loadBySource(source);
   }
 }
