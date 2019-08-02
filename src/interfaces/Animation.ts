@@ -2,7 +2,9 @@ import { AnimationDelta } from './';
 
 export interface Animation {
   target: any;
+  duration: number;
   handler: () => void;
-  params: AnimationDelta;
+  animationDelta: AnimationDelta;
   lastUpdate: number;
+  start: number;
 }

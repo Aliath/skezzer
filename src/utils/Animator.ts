@@ -4,56 +4,49 @@ const _animations: Animation[] = [];
 export class Animator {
   static update = (time: number) => {
     for (let animation of _animations) {
-      const timeDelta = animation.lastUpdate - time;
+      const timeDelta = time - animation.lastUpdate;
       animation.lastUpdate = time;
+    
+      for (let key in animation.animationDelta) {
+        const paramDelta = timeDelta / animation.duration;
+        animation.target[key] += paramDelta * animation.animationDelta[key];
 
-      for (let key in animation.params) {
-        const percentageFinished = Math.min(1, timeDelta / time);
-        animation.target[key] += animation.params[key] * percentageFinished;
-
-        if (percentageFinished === 1) animation.handler();
+        if (time >= animation.start + animation.duration) {
+          animation.handler();
+        }
       }
     }
   }
 
-  static animate = (target: any, animationDelta: AnimationDelta, time: number): Promise<null> => {
-    return new Promise((resolve) => {
-      const currentAnimation = {
-        target,
-        params: animationDelta,
+  static to = (target: any, params: { [key: string]: number }, duration: number): Promise<null> => {
+    const animationDelta = {};
+
+    for (let key in params) {
+      if (!target.hasOwnProperty(key)) {
+        throw new Error(`Target does not have property "${key}"!`);
+      }
+
+      animationDelta[key] = target[key] + params[key];
+    }
+
+    return Animator.animate(target, animationDelta, duration);
+  }
+
+  static animate = (target: any, animationDelta: AnimationDelta, duration: number): Promise<null> => {
+    return new Promise(resolve => {
+      const animation: Animation = {
+        target, duration, animationDelta,
         lastUpdate: performance.now(),
+        start: performance.now(),
         handler: () => {
-          const currentAnimationIndex = _animations.indexOf(currentAnimation);
-          _animations.splice(currentAnimationIndex, 1);
+          const animationIndex = _animations.indexOf(animation);
+          _animations.splice(animationIndex, 1);
 
           resolve();
         }
       };
 
-      _animations.push(currentAnimation);
+      _animations.push(animation);  
     });
-  }
-
-  static to = (target: any, expectedParams: { [key: string]: string }, time: number) => {
-    const animationDelta: AnimationDelta = {};
-
-    for (let key in expectedParams) {
-      const value = expectedParams[key];
-      const prefix = value.substr(0, 2);
-      const countValue = +value.substr(2);
-      let countedValue: number;
-
-      if (prefix === '+=') {
-        countedValue = target[key] + countValue;
-      } else if (prefix === '-=') {
-        countedValue = target[key] - countValue;
-      } else {
-        throw new Error('Animator.to(): Wrong parameters!');
-      }
-
-      animationDelta[key] = countedValue;
-    }
-
-    return Animator.animate(target, animationDelta, time);
   }
 }

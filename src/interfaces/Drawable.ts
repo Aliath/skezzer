@@ -6,7 +6,7 @@ export interface Drawable {
   zIndex: number;
   background: CanvasImageSource;
 
-  onClick?: () => void;
+  onClick?: (event: { x: number, y: number }) => void;
   backgroundPosition?: { x: number, y: number, };
   backgroundSize?: { width: number, height: number };
 }

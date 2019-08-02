@@ -46,7 +46,7 @@ export class Renderer extends Component {
       const endY = startY + object.height;
 
       if (x >= startX && x <= endX && y >= startY && y <= endY) {
-        if (object.onClick) object.onClick();
+        if (object.onClick) object.onClick({ x, y });
         return;
       }
     }
@@ -136,8 +136,8 @@ export class Renderer extends Component {
         backgroundPosition.y,
         backgroundSize.width,
         backgroundSize.height,
-        (GRID_SIZE - width) + x + mapX,
-        (GRID_SIZE - height) + y + mapY,
+        (GRID_SIZE - width) + GRID_SIZE * x + mapX,
+        (GRID_SIZE - height) + GRID_SIZE * y + mapY,
         width,
         height
       );
