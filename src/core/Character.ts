@@ -25,6 +25,7 @@ export class Character extends Component implements DrawableObject {
   private _background: CanvasImageSource;
   private _backgroundSize = { width: 32, height: 48 };
   private _backgroundPosition = { x: 0, y: 0 };
+  private _currentSteps = { up: 0, left: 0, right: 0, down: 0 };
   private _currentDirection: Direction = null;
   private _walkLock: boolean = false;
   public realX: number;
@@ -39,45 +40,65 @@ export class Character extends Component implements DrawableObject {
     this.y = this.realY = data.y;
 
     this._loadImage(data.mediaSource);
-    this._eventEmitter.on('KeyboardManager:changeDirection', (direction: Direction) => {
-      this._currentDirection = direction;
-      this._parseDirection();
-    });
+
+    this._eventEmitter.on('KeyboardManager:changeDirection', this._parseDirection);
   }
 
-  private _parseDirection = () => {
-    const { _currentDirection: direction } = this;
+  private _parseDirection = (direction: Direction) => {
+    this._currentDirection = direction;
     let { x, y } = this;
+    let backgroundPositionY: number;
 
     switch (direction) {
       case 'up':
         y -= 1;
+        backgroundPositionY = 144;
         break;
       case 'down':
         y += 1;
+        backgroundPositionY = 0;
         break;
       case 'left':
         x -= 1;
+        backgroundPositionY = 48;
         break;
       case 'right':
+        backgroundPositionY = 96;
         x += 1;
         break;
       default:
         return;
     }
 
-    this._goTowards(x, y);
+    this._goTowards(x, y, backgroundPositionY, direction);
   }
 
-  private _goTowards = async(x: number, y: number) => {
+  private _goTowards = async (x: number, y: number, backgroundPositionY: number, direction: Direction) => {
+    if (!this._walkLock) {
+      this._backgroundPosition.y = backgroundPositionY;
+    }
+
     if (this._walkLock || x < 0 || y < 0 || x >= this._game.ground.width || y >= this._game.ground.height) {
       return;
     }
 
     this._walkLock = true;
-    await Animator.to(this, { x, y }, STEP_TIME);
+    const currentStep = this._currentSteps[direction];
+    const currentPosition = currentStep * 64;
+
+    await Animator.to(this, { x, y }, STEP_TIME, (percentage: number) => {
+      if (percentage > .75) {
+        this._backgroundPosition.x = (currentPosition + 64) % 128;
+      } else if (percentage > .25) {
+        this._backgroundPosition.x = (currentPosition + 32) % 128;
+      }
+    });
+
+    this._currentSteps[direction] = (this._currentSteps[direction] + 1) % 2;
+    this._backgroundPosition.x = this._currentSteps[direction] * 64;
+
     this._walkLock = false;
-    this._parseDirection();
+    this._parseDirection(this._currentDirection);
   }
 
   private _loadImage = async (source: string) => {

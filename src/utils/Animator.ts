@@ -28,10 +28,12 @@ export class Animator {
 
         return;
       }
+
+      animation.onUpdate((time - animation.start) / animation.duration);
     }
   }
 
-  static to = (target: any, params: { [key: string]: number }, duration: number): Promise<null> => {
+  static to = (target: any, params: { [key: string]: number }, duration: number, onUpdate?: (percentageFinished?: number) => void): Promise<null> => {
     const animationDelta = {};
 
     for (let key in params) {
@@ -42,15 +44,16 @@ export class Animator {
       animationDelta[key] = params[key] - target[key];
     }
 
-    return Animator.animate(target, animationDelta, duration);
+    return Animator.animate(target, animationDelta, duration, onUpdate);
   }
 
-  static animate = (target: any, animationDelta: AnimationDelta, duration: number): Promise<null> => {
+  static animate = (target: any, animationDelta: AnimationDelta, duration: number, onUpdate?: (percentageFinished?: number) => void): Promise<null> => {
     return new Promise(resolve => {
       const finishResult = _generateFinishResult(target, animationDelta);
 
       const animation: Animation = {
         target, duration, animationDelta, finishResult,
+        onUpdate: onUpdate || null,
         lastUpdate: performance.now(),
         start: performance.now(),
         handler: () => {
