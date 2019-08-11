@@ -1,6 +1,9 @@
-import { DrawableObject } from "../interfaces";
-import { MediaLoader } from "../utils";
-import { Component, Game } from "./";
+import { DrawableObject } from '../interfaces';
+import { Component } from './Component';
+import { Game } from './Game';
+import { Direction } from './KeyboardManager';
+import { MediaLoader, Animator } from '../utils';
+import { STEP_TIME } from '../config';
 
 // temporary fix for the unloaded objects
 const _unloadedCharacter = document.createElement('canvas');
@@ -22,16 +25,59 @@ export class Character extends Component implements DrawableObject {
   private _background: CanvasImageSource;
   private _backgroundSize = { width: 32, height: 48 };
   private _backgroundPosition = { x: 0, y: 0 };
+  private _currentDirection: Direction = null;
+  private _walkLock: boolean = false;
+  public realX: number;
+  public realY: number;
   public x: number;
   public y: number;
 
   constructor(game: Game, data: CharacterData) {
     super(game);
-    
-    this.x = data.x;
-    this.y = data.y;
+
+    this.x = this.realX = data.x;
+    this.y = this.realY = data.y;
 
     this._loadImage(data.mediaSource);
+    this._eventEmitter.on('KeyboardManager:changeDirection', (direction: Direction) => {
+      this._currentDirection = direction;
+      this._parseDirection();
+    });
+  }
+
+  private _parseDirection = () => {
+    const { _currentDirection: direction } = this;
+    let { x, y } = this;
+
+    switch (direction) {
+      case 'up':
+        y -= 1;
+        break;
+      case 'down':
+        y += 1;
+        break;
+      case 'left':
+        x -= 1;
+        break;
+      case 'right':
+        x += 1;
+        break;
+      default:
+        return;
+    }
+
+    this._goTowards(x, y);
+  }
+
+  private _goTowards = async(x: number, y: number) => {
+    if (this._walkLock || x < 0 || y < 0 || x >= this._game.ground.width || y >= this._game.ground.height) {
+      return;
+    }
+
+    this._walkLock = true;
+    await Animator.to(this, { x, y }, STEP_TIME);
+    this._walkLock = false;
+    this._parseDirection();
   }
 
   private _loadImage = async (source: string) => {
@@ -48,6 +94,6 @@ export class Character extends Component implements DrawableObject {
       return { x, y, zIndex: _zIndex, width: 32, height: 48, background: _unloadedCharacter };
     }
 
-    return { x, y, zIndex: _zIndex, width: _width, height: _height, background: _background, backgroundSize: _backgroundSize, backgroundPosition: _backgroundPosition };
+    return { x, y, zIndex: _zIndex, width: _width, height: _height, background: _background, backgroundSize: _backgroundSize, backgroundPosition: _backgroundPosition, onClick: (e) => console.log(e) };
   }
 }

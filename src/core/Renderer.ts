@@ -1,4 +1,5 @@
-import { Game, Component } from './';
+import { Component } from './Component';
+import { Game } from './Game';
 import { Animator } from '../utils/';
 import { Drawable, DrawableObject, GroundObject } from '../interfaces';
 import { GRID_SIZE } from '../config';
@@ -46,7 +47,10 @@ export class Renderer extends Component {
       const endY = startY + object.height;
 
       if (x >= startX && x <= endX && y >= startY && y <= endY) {
-        if (object.onClick) object.onClick({ x, y });
+        if (object.onClick) {
+          object.onClick({ x, y });
+        }
+
         return;
       }
     }
@@ -101,8 +105,8 @@ export class Renderer extends Component {
     const offsetX = Math.max(0, (_width - drawableGround.width) / 2);
     const offsetY = Math.max(0, (_height - drawableGround.height) / 2);
 
-    const centralPointAverageX = drawableCentralPoint.x + drawableCentralPoint.width / 2;
-    const centralPointAverageY = drawableCentralPoint.y + drawableCentralPoint.height / 2;
+    const centralPointAverageX = drawableCentralPoint.x * GRID_SIZE + drawableCentralPoint.width / 2;
+    const centralPointAverageY = drawableCentralPoint.y * GRID_SIZE + drawableCentralPoint.height / 2;
 
     const x = -Math.min(Math.max(0, centralPointAverageX - _width / 2), (drawableGround.width - _width + offsetX));
     const y = -Math.min(Math.max(0, centralPointAverageY - _height / 2), drawableGround.height - _height + offsetY);
@@ -110,7 +114,10 @@ export class Renderer extends Component {
   }
 
   private _render = (time: number) => {
-    if (this._isRendering) requestAnimationFrame(this._render);
+    if (this._isRendering) {
+      requestAnimationFrame(this._render);
+    }
+
     Animator.update(time);
 
     const { _width, _height, _context, _ground } = this;

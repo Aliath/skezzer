@@ -1,4 +1,5 @@
-import { Component, Game } from './';
+import { Component } from './Component';
+import { Game } from './Game';
 
 export class Loader extends Component {
   private _ref: HTMLElement;

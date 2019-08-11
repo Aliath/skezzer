@@ -7,4 +7,5 @@ export interface Animation {
   animationDelta: AnimationDelta;
   lastUpdate: number;
   start: number;
+  finishResult: { [key: string]: number };
 }

@@ -9,10 +9,10 @@ export class Game {
   /* COMPONENTS */
   public renderer: Renderer = new Renderer(this);
   public loader: Loader = new Loader(this);
-  //public keyboardManager: KeyboardManager = new KeyboardManager(this);
   public ground: Ground = new Ground(this);
-  public character: Character = new Character(this, { x: 0, y: 0, mediaSource: 'img/example-outfit.png' });
-
+  public character: Character = new Character(this, { x: 5, y: 3, mediaSource: 'img/example-outfit.png' });
+  public keyboardManager: KeyboardManager = new KeyboardManager(this);
+  
 
   constructor() {
     this.ground.load('img/example-map.png').then((test) => {

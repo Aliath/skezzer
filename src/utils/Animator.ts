@@ -1,6 +1,16 @@
 import { Animation, AnimationDelta } from '../interfaces/';
 const _animations: Animation[] = [];
 
+const _generateFinishResult = (target: any, animationDelta: AnimationDelta) => {
+  const result = {};
+
+  Object.keys(animationDelta).forEach((key: string) => {
+    result[key] = target[key] + animationDelta[key];
+  }); 
+
+  return result;
+};
+
 export class Animator {
   static update = (time: number) => {
     for (let animation of _animations) {
@@ -10,10 +20,13 @@ export class Animator {
       for (let key in animation.animationDelta) {
         const paramDelta = timeDelta / animation.duration;
         animation.target[key] += paramDelta * animation.animationDelta[key];
+      }
 
-        if (time >= animation.start + animation.duration) {
-          animation.handler();
-        }
+      if (time >= animation.start + animation.duration) {
+        Object.assign(animation.target, animation.finishResult);
+        animation.handler();
+
+        return;
       }
     }
   }
@@ -26,7 +39,7 @@ export class Animator {
         throw new Error(`Target does not have property "${key}"!`);
       }
 
-      animationDelta[key] = target[key] + params[key];
+      animationDelta[key] = params[key] - target[key];
     }
 
     return Animator.animate(target, animationDelta, duration);
@@ -34,8 +47,10 @@ export class Animator {
 
   static animate = (target: any, animationDelta: AnimationDelta, duration: number): Promise<null> => {
     return new Promise(resolve => {
+      const finishResult = _generateFinishResult(target, animationDelta);
+
       const animation: Animation = {
-        target, duration, animationDelta,
+        target, duration, animationDelta, finishResult,
         lastUpdate: performance.now(),
         start: performance.now(),
         handler: () => {

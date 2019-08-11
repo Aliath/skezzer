@@ -1,16 +1,17 @@
-import { Component, Game } from './';
+import { Game } from './Game';
+import { Component } from './Component';
 
-type direction = 'up' | 'down' | 'left' | 'right' | null;
+export type Direction = 'up' | 'down' | 'left' | 'right' | null;
 
-const DIRECTION_KEY_CODES: { [keyCode: string]: direction } = {
+const DIRECTION_KEY_CODES: { [keyCode: string]: Direction } = {
   'KeyW': 'up', 'ArrowUp': 'up',
   'KeyA': 'left', 'ArrowLeft': 'left',
   'KeyD': 'right', 'ArrowRight': 'right',
-  'keyS': 'down', 'ArrowDown': 'down'
+  'KeyS': 'down', 'ArrowDown': 'down'
 };
 
 export class KeyboardManager extends Component {
-  private _currentDirection: direction = null;
+  private _currentDirection: Direction = null;
 
   constructor(game: Game) {
     super(game);

@@ -1,6 +1,8 @@
 import { GroundObject, Ground as GroundInterface } from "../interfaces";
+import { Component } from './Component';
+import { Game } from './Game';
 import { MediaLoader } from "../utils";
-import { Game, Component } from './';
+import { GRID_SIZE } from "../config";
 
 export interface GroundData {
   mediaSource: string
@@ -12,6 +14,14 @@ export class Ground extends Component implements GroundObject {
 
   constructor(game: Game) {
     super(game);
+  }
+
+  get width() {
+    return Number(this._media.width) / GRID_SIZE;
+  }
+
+  get height() {
+    return Number(this._media.height) / GRID_SIZE;
   }
 
   load = (mediaSource: string) => {

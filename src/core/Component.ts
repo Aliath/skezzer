@@ -1,4 +1,4 @@
-import { Game } from './';
+import { Game } from './Game';
 import { EventEmitter } from '../utils';
 
 export class Component {
