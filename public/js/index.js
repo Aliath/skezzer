@@ -416,7 +416,7 @@
                       backgroundSize: { width: drawableObject.width, height: drawableObject.height }
                   };
                   var _c = __assign({}, defaults, drawableObject), x = _c.x, y = _c.y, width = _c.width, height = _c.height, background = _c.background, backgroundPosition = _c.backgroundPosition, backgroundSize = _c.backgroundSize;
-                  _context.drawImage(background, backgroundPosition.x, backgroundPosition.y, backgroundSize.width, backgroundSize.height, (GRID_SIZE - width) + GRID_SIZE * x + mapX, (GRID_SIZE - height) + GRID_SIZE * y + mapY, width, height);
+                  _context.drawImage(background, backgroundPosition.x, backgroundPosition.y, backgroundSize.width, backgroundSize.height, Math.round((GRID_SIZE - width) + GRID_SIZE * x + mapX), Math.round((GRID_SIZE - height) + GRID_SIZE * y + mapY), width, height);
               }
           };
           _this.hide();
@@ -496,12 +496,14 @@
           var _this = _super.call(this, game) || this;
           _this._loaded = false;
           _this._zIndex = 1;
-          _this._backgroundSize = { width: 32, height: 48 };
           _this._backgroundPosition = { x: 0, y: 0 };
           _this._currentSteps = { up: 0, left: 0, right: 0, down: 0 };
           _this._currentDirection = null;
           _this._walkLock = false;
           _this._parseDirection = function (direction) {
+              if (!_this._loaded) {
+                  return;
+              }
               _this._currentDirection = direction;
               var _a = _this, x = _a.x, y = _a.y;
               var backgroundPositionY;
@@ -528,7 +530,7 @@
               _this._goTowards(x, y, backgroundPositionY, direction);
           };
           _this._goTowards = function (x, y, backgroundPositionY, direction) { return __awaiter(_this, void 0, void 0, function () {
-              var currentStep, currentPosition;
+              var currentStep, frameWidth, currentPosition;
               var _this = this;
               return __generator(this, function (_a) {
                   switch (_a.label) {
@@ -541,19 +543,20 @@
                           }
                           this._walkLock = true;
                           currentStep = this._currentSteps[direction];
-                          currentPosition = currentStep * 64;
+                          frameWidth = this._width;
+                          currentPosition = currentStep * frameWidth * 2;
                           return [4 /*yield*/, Animator.to(this, { x: x, y: y }, STEP_TIME, function (percentage) {
-                                  if (percentage > .75) {
-                                      _this._backgroundPosition.x = (currentPosition + 64) % 128;
+                                  if (percentage > .66) {
+                                      _this._backgroundPosition.x = (currentPosition + 2 * frameWidth) % (frameWidth * 4);
                                   }
-                                  else if (percentage > .25) {
-                                      _this._backgroundPosition.x = (currentPosition + 32) % 128;
+                                  else if (percentage > .33) {
+                                      _this._backgroundPosition.x = (currentPosition + frameWidth) % (frameWidth * 4);
                                   }
                               })];
                       case 1:
                           _a.sent();
                           this._currentSteps[direction] = (this._currentSteps[direction] + 1) % 2;
-                          this._backgroundPosition.x = this._currentSteps[direction] * 64;
+                          this._backgroundPosition.x = this._currentSteps[direction] * frameWidth * 2;
                           this._walkLock = false;
                           this._parseDirection(this._currentDirection);
                           return [2 /*return*/];
@@ -577,11 +580,11 @@
               });
           }); };
           _this.getDrawData = function () {
-              var _a = _this, x = _a.x, y = _a.y, _width = _a._width, _height = _a._height, _zIndex = _a._zIndex, _background = _a._background, _loaded = _a._loaded, _backgroundSize = _a._backgroundSize, _backgroundPosition = _a._backgroundPosition;
+              var _a = _this, x = _a.x, y = _a.y, _width = _a._width, _height = _a._height, _zIndex = _a._zIndex, _background = _a._background, _loaded = _a._loaded, _backgroundPosition = _a._backgroundPosition;
               if (!_loaded) {
-                  return { x: x, y: y, zIndex: _zIndex, width: 32, height: 48, background: _unloadedCharacter };
+                  return { x: x, y: y, zIndex: _zIndex, width: 32, height: 32, background: _unloadedCharacter };
               }
-              return { x: x, y: y, zIndex: _zIndex, width: _width, height: _height, background: _background, backgroundSize: _backgroundSize, backgroundPosition: _backgroundPosition, onClick: function (e) { return console.log(e); } };
+              return { x: x, y: y, zIndex: _zIndex, width: _width, height: _height, background: _background, backgroundPosition: _backgroundPosition };
           };
           _this.x = _this.realX = data.x;
           _this.y = _this.realY = data.y;
@@ -591,6 +594,7 @@
       }
       return Character;
   }(Component));
+  //# sourceMappingURL=Character.js.map
 
   new Game();
   //# sourceMappingURL=index.js.map

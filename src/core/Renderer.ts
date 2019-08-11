@@ -143,8 +143,8 @@ export class Renderer extends Component {
         backgroundPosition.y,
         backgroundSize.width,
         backgroundSize.height,
-        (GRID_SIZE - width) + GRID_SIZE * x + mapX,
-        (GRID_SIZE - height) + GRID_SIZE * y + mapY,
+        Math.round((GRID_SIZE - width) + GRID_SIZE * x + mapX),
+        Math.round((GRID_SIZE - height) + GRID_SIZE * y + mapY),
         width,
         height
       );

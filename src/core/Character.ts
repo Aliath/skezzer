@@ -23,7 +23,6 @@ export class Character extends Component implements DrawableObject {
   private _height: number;
   private _zIndex: number = 1;
   private _background: CanvasImageSource;
-  private _backgroundSize = { width: 32, height: 48 };
   private _backgroundPosition = { x: 0, y: 0 };
   private _currentSteps = { up: 0, left: 0, right: 0, down: 0 };
   private _currentDirection: Direction = null;
@@ -45,6 +44,10 @@ export class Character extends Component implements DrawableObject {
   }
 
   private _parseDirection = (direction: Direction) => {
+    if (!this._loaded) {
+      return;
+    }
+
     this._currentDirection = direction;
     let { x, y } = this;
     let backgroundPositionY: number;
@@ -84,18 +87,19 @@ export class Character extends Component implements DrawableObject {
 
     this._walkLock = true;
     const currentStep = this._currentSteps[direction];
-    const currentPosition = currentStep * 64;
+    const frameWidth = this._width;
+    const currentPosition = currentStep * frameWidth * 2;
 
     await Animator.to(this, { x, y }, STEP_TIME, (percentage: number) => {
-      if (percentage > .75) {
-        this._backgroundPosition.x = (currentPosition + 64) % 128;
-      } else if (percentage > .25) {
-        this._backgroundPosition.x = (currentPosition + 32) % 128;
+      if (percentage > .66) {
+        this._backgroundPosition.x = (currentPosition + 2 * frameWidth) % (frameWidth * 4);
+      } else if (percentage > .33) {
+        this._backgroundPosition.x = (currentPosition + frameWidth) % (frameWidth * 4);
       }
     });
 
     this._currentSteps[direction] = (this._currentSteps[direction] + 1) % 2;
-    this._backgroundPosition.x = this._currentSteps[direction] * 64;
+    this._backgroundPosition.x = this._currentSteps[direction] * frameWidth * 2;
 
     this._walkLock = false;
     this._parseDirection(this._currentDirection);
@@ -109,12 +113,12 @@ export class Character extends Component implements DrawableObject {
   }
 
   public getDrawData = () => {
-    const { x, y, _width, _height, _zIndex, _background, _loaded, _backgroundSize, _backgroundPosition } = this;
+    const { x, y, _width, _height, _zIndex, _background, _loaded, _backgroundPosition } = this;
 
     if (!_loaded) {
-      return { x, y, zIndex: _zIndex, width: 32, height: 48, background: _unloadedCharacter };
+      return { x, y, zIndex: _zIndex, width: 32, height: 32, background: _unloadedCharacter };
     }
 
-    return { x, y, zIndex: _zIndex, width: _width, height: _height, background: _background, backgroundSize: _backgroundSize, backgroundPosition: _backgroundPosition, onClick: (e) => console.log(e) };
+    return { x, y, zIndex: _zIndex, width: _width, height: _height, background: _background, backgroundPosition: _backgroundPosition };
   }
 }
