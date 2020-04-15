@@ -91,11 +91,15 @@ export class Character extends Component implements DrawableObject {
     const currentPosition = currentStep * frameWidth * 2;
 
     await Animator.to(this, { x, y }, STEP_TIME, (percentage: number) => {
-      if (percentage > .66) {
-        this._backgroundPosition.x = (currentPosition + 2 * frameWidth) % (frameWidth * 4);
-      } else if (percentage > .33) {
-        this._backgroundPosition.x = (currentPosition + frameWidth) % (frameWidth * 4);
+      let currentPositionX = this._backgroundPosition.x;
+
+      if (percentage > .75) {
+        currentPositionX = (currentPosition + 2 * frameWidth) % (frameWidth * 4);
+      } else if (percentage > .25) {
+        currentPositionX = (currentPosition + frameWidth) % (frameWidth * 4);
       }
+
+      this._backgroundPosition.x = currentPositionX;
     });
 
     this._currentSteps[direction] = (this._currentSteps[direction] + 1) % 2;
@@ -115,7 +119,7 @@ export class Character extends Component implements DrawableObject {
   public getDrawData = () => {
     const { x, y, _width, _height, _zIndex, _background, _loaded, _backgroundPosition } = this;
 
-    if (!_loaded) {
+    if (true || !_loaded) {
       return { x, y, zIndex: _zIndex, width: 32, height: 32, background: _unloadedCharacter };
     }
 

@@ -15,7 +15,7 @@ export class Game {
   
 
   constructor() {
-    this.ground.load('img/example-map.png').then((test) => {
+    this.ground.load('img/example-map.png').then(() => {
       this.loader.hide();
 
       this.renderer.setGround(this.ground);

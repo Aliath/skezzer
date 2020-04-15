@@ -39,11 +39,10 @@ export class Renderer extends Component {
     const drawObjects = this._getOrderedDrawObjects();
     const { x: mapX, y: mapY } = this.getMapPosition();
 
-
     for (let object of drawObjects) {
-      const startX = object.x + mapX;
+      const startX = object.x * GRID_SIZE + mapX + (GRID_SIZE - object.width);
       const endX = startX + object.width;
-      const startY = object.y + mapY;
+      const startY = object.y * GRID_SIZE + mapY + (GRID_SIZE - object.height);
       const endY = startY + object.height;
 
       if (x >= startX && x <= endX && y >= startY && y <= endY) {
